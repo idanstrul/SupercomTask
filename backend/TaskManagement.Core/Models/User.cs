@@ -8,5 +8,5 @@ public class User
     public string Email { get; set; } = string.Empty;
     
     // Navigation property
-    public ICollection<Task> Tasks { get; set; } = new List<Task>();
+    public ICollection<TaskItem> TaskItems { get; set; } = new List<TaskItem>();
 }

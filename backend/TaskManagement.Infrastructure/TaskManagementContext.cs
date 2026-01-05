@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Core.Models;
-using TaskEntity = TaskManagement.Core.Models.Task;
 
 namespace TaskManagement.Infrastructure;
 
@@ -11,7 +10,7 @@ public class TaskManagementContext : DbContext
     {
     }
 
-    public DbSet<TaskEntity> Tasks { get; set; }
+    public DbSet<TaskItem> TaskItems { get; set; }
     public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,8 +36,8 @@ public class TaskManagementContext : DbContext
                 .IsUnique();
         });
 
-        // Task configuration
-        modelBuilder.Entity<TaskEntity>(entity =>
+        // TaskItem configuration
+        modelBuilder.Entity<TaskItem>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title)
@@ -55,7 +54,7 @@ public class TaskManagementContext : DbContext
 
             // Foreign key relationship
             entity.HasOne(e => e.User)
-                .WithMany(u => u.Tasks)
+                .WithMany(u => u.TaskItems)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
