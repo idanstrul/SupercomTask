@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: backend-setup
     content: Set up .NET 8 backend projects (API, Core, Infrastructure, Service) with EF Core and SQL Server configuration
-    status: pending
+    status: completed
   - id: backend-models
     content: Create domain models (Task, User) with proper relationships and Entity Framework configuration
     status: pending
