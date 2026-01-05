@@ -10,10 +10,10 @@ todos:
     status: completed
   - id: backend-models
     content: Create domain models (Task, User) with proper relationships and Entity Framework configuration
-    status: pending
+    status: completed
   - id: backend-validation
     content: Implement DTOs and FluentValidation validators for all fields (title, description, due date, priority, full name, telephone, email)
-    status: pending
+    status: completed
   - id: backend-api
     content: Create RESTful API controllers with full CRUD operations for Tasks and Users, including error handling middleware
     status: pending
