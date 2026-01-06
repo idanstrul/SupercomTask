@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: backend-api
     content: Create RESTful API controllers with full CRUD operations for Tasks and Users, including error handling middleware
-    status: pending
+    status: completed
   - id: frontend-setup
     content: Initialize React app and configure Redux Toolkit store with slices for tasks, users, and UI state
     status: pending
