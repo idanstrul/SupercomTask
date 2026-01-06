@@ -1,32 +1,41 @@
-using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.API.Middleware;
 using TaskManagement.API.Mappings;
 using TaskManagement.API.Validators;
+using TaskManagement.Core.Interfaces;
 using TaskManagement.Infrastructure;
+using TaskManagement.Infrastructure.Repositories;
+using TaskManagement.Service.Services;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// Register FluentValidation
+// FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskItemDtoValidator>();
 
-// Register AutoMapper
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure Entity Framework
+// EF Core
 builder.Services.AddDbContext<TaskManagementContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure CORS for React frontend
+// Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+
+// Services
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<TaskItemService>();
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -39,7 +48,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -47,21 +55,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowReactApp");
 
-// Use global exception handler middleware
+// global exception handler
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Ensure database is created
+// Apply migrations (better than EnsureCreated)
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<TaskManagementContext>();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 }
 
 app.Run();

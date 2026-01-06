@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FluentValidation;
+using TaskManagement.Service.Exceptions; // ✅ הוסף את זה
 
 namespace TaskManagement.API.Middleware;
 
@@ -32,20 +33,34 @@ public class GlobalExceptionHandlerMiddleware
     {
         var statusCode = HttpStatusCode.InternalServerError;
         var message = "An error occurred while processing your request.";
+        Dictionary<string, string[]>? errors = null;
 
         switch (exception)
         {
+            // ✅ FluentValidation errors -> 400 with field errors
             case ValidationException validationException:
                 statusCode = HttpStatusCode.BadRequest;
                 message = "Validation failed";
-                var validationErrors = validationException.Errors
+                errors = validationException.Errors
                     .GroupBy(e => e.PropertyName)
                     .ToDictionary(
                         g => g.Key,
                         g => g.Select(e => e.ErrorMessage).ToArray()
                     );
-                return WriteErrorResponse(context, statusCode, message, validationErrors);
+                break;
 
+            // ✅ Service layer exceptions -> proper HTTP mapping
+            case NotFoundException nf:
+                statusCode = HttpStatusCode.NotFound;
+                message = nf.Message;
+                break;
+
+            case ConflictException cf:
+                statusCode = HttpStatusCode.Conflict;
+                message = cf.Message;
+                break;
+
+            // Existing mappings (keep if you still throw these)
             case KeyNotFoundException:
             case ArgumentNullException:
                 statusCode = HttpStatusCode.NotFound;
@@ -63,7 +78,7 @@ public class GlobalExceptionHandlerMiddleware
                 break;
         }
 
-        return WriteErrorResponse(context, statusCode, message);
+        return WriteErrorResponse(context, statusCode, message, errors);
     }
 
     private static Task WriteErrorResponse(
@@ -78,8 +93,8 @@ public class GlobalExceptionHandlerMiddleware
         var response = new
         {
             statusCode = (int)statusCode,
-            message = message,
-            errors = errors
+            message,
+            errors
         };
 
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
